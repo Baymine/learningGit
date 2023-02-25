@@ -32,12 +32,14 @@ void TinyPbRpcDispacther::dispatch(AbstractData* data, TcpConnection* conn) {
   std::string method_name;
 
   TinyPbStruct reply_pk;
+  // 设置接口名
   reply_pk.service_full_name = tmp->service_full_name;
   reply_pk.msg_req = tmp->msg_req;
   if (reply_pk.msg_req.empty()) {
     reply_pk.msg_req = MsgReqUtil::genMsgNumber();
   }
 
+  // 解析 service_full_name，得到 service_name 和 method_name
   if (!parseServiceFullName(tmp->service_full_name, service_name, method_name)) {
     ErrorLog << reply_pk.msg_req << "|parse service name " << tmp->service_full_name << "error";
 
@@ -50,6 +52,8 @@ void TinyPbRpcDispacther::dispatch(AbstractData* data, TcpConnection* conn) {
   }
 
   Coroutine::GetCurrentCoroutine()->getRunTime()->m_interface_name = tmp->service_full_name;
+
+  // 找到对应的服务器
   auto it = m_service_map.find(service_name);
   if (it == m_service_map.end() || !((*it).second)) {
     reply_pk.err_code = ERROR_SERVICE_NOT_FOUND;
@@ -57,7 +61,8 @@ void TinyPbRpcDispacther::dispatch(AbstractData* data, TcpConnection* conn) {
     ss << "not found service_name:[" << service_name << "]"; 
     ErrorLog << reply_pk.msg_req << "|" << ss.str();
     reply_pk.err_info = ss.str();
-
+    
+    //编码相应数据包，回送给TCPConnection对象
     conn->getCodec()->encode(conn->getOutBuffer(), dynamic_cast<AbstractData*>(&reply_pk));
 
     InfoLog << "end dispatch client tinypb request, msgno=" << tmp->msg_req;
@@ -67,6 +72,7 @@ void TinyPbRpcDispacther::dispatch(AbstractData* data, TcpConnection* conn) {
 
   service_ptr service = (*it).second;
 
+  // 找到对应的方法
   const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(method_name);
   if (!method) {
     reply_pk.err_code = ERROR_METHOD_NOT_FOUND;
@@ -78,6 +84,7 @@ void TinyPbRpcDispacther::dispatch(AbstractData* data, TcpConnection* conn) {
     return;
   }
 
+  // 根据 method 对象反射出 request 和 response 对象
   google::protobuf::Message* request = service->GetRequestPrototype(method).New();
   DebugLog << reply_pk.msg_req << "|request.name = " << request->GetDescriptor()->full_name();
 
@@ -96,6 +103,7 @@ void TinyPbRpcDispacther::dispatch(AbstractData* data, TcpConnection* conn) {
   InfoLog << reply_pk.msg_req <<"|Get client request data:" << request->ShortDebugString();
   InfoLog << "============================================================";
 
+  // 初始化 response 对象
   google::protobuf::Message* response = service->GetResponsePrototype(method).New();
 
   DebugLog << reply_pk.msg_req << "|response.name = " << response->GetDescriptor()->full_name();
@@ -106,8 +114,10 @@ void TinyPbRpcDispacther::dispatch(AbstractData* data, TcpConnection* conn) {
   rpc_controller.SetMethodFullName(tmp->service_full_name);
 
   std::function<void()> reply_package_func = [](){};
-
+  // 存放回调函数
   TinyPbRpcClosure closure(reply_package_func);
+
+  // 为了异步调用，结束的时候会执行closure中的回调函数
   service->CallMethod(method, &rpc_controller, request, response, &closure);
 
   InfoLog << "Call [" << reply_pk.service_full_name << "] succ, now send reply package";

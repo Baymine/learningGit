@@ -9,6 +9,7 @@
 
 namespace tinyrpc {
 
+// TinyPB中的自定义协议中的各项信息
 class TinyPbStruct : public AbstractData {
  public:
   typedef std::shared_ptr<TinyPbStruct> pb_ptr;

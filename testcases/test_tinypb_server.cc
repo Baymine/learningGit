@@ -10,6 +10,7 @@
 #include "tinyrpc/comm/start.h"
 #include "test_tinypb_server.pb.h"
 
+// static std::atomic<int> i;
 
 static int i = 0;
 tinyrpc::CoroutineMutex g_cor_mutex;
@@ -53,6 +54,7 @@ class QueryServiceImpl : public QueryService {
     // sleep(6);
     // AppInfoLog << "QueryServiceImpl.query_age, sleep 6 s end";
 
+    // queryAgeRes's members
     response->set_ret_code(0);
     response->set_res_info("OK");
     response->set_req_no(request->req_no());
@@ -85,11 +87,11 @@ int main(int argc, char* argv[]) {
     printf("./server a.xml\n");
     return 0;
   }
-
+  // 1. 读取配置文件
   tinyrpc::InitConfig(argv[1]);
-
+  // 2. 注册 service
   REGISTER_SERVICE(QueryServiceImpl);
-
+  // 3. 启动 RPC 服务
   tinyrpc::StartRpcServer();
   
   return 0;

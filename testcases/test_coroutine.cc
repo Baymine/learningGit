@@ -9,7 +9,7 @@
 #include "tinyrpc/net/mutex.h"
 
 
-tinyrpc::Coroutine::ptr cor;
+tinyrpc::Coroutine::ptr cor;  // shared_ptr of Corountine
 tinyrpc::Coroutine::ptr cor2;
 
 class Test {
@@ -75,6 +75,8 @@ int main(int argc, char* argv[]) {
   std::cout << "main begin" << std::endl;
   int stack_size = 128 * 1024;
   char* sp = reinterpret_cast<char*>(malloc(stack_size));
+  
+  // user coroutine
   cor = std::make_shared<tinyrpc::Coroutine>(stack_size, sp, fun1);
 
   char* sp2 = reinterpret_cast<char*>(malloc(stack_size));
@@ -90,3 +92,22 @@ int main(int argc, char* argv[]) {
 
   std::cout << "main end" << std::endl;
 }
+/* output
+main begin
+thread 1 begin
+now begin to resume fun1 coroutine in thread 1
+cor1 ---- now fitst resume fun1 coroutine by thread 1
+cor1 ---- now begin to yield fun1 coroutine
+cor1 ---- coroutine lock on test_, sleep 5s begin
+thread 2 begin
+now begin to resume fun1 coroutine in thread 2
+cor222 ---- now fitst resume fun1 coroutine by thread 1
+cor222 ---- now begin to yield fun1 coroutine
+cor222 ---- coroutine2 want to get coroutine lock of test_
+now fun1 coroutine back in thread 2
+thread 2 end
+cor1 ---- sleep 5s end, now back coroutine lock
+now fun1 coroutine back in thread 1
+thread 1 end
+main end
+*/

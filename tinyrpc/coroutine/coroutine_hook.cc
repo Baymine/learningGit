@@ -11,6 +11,8 @@
 #include "tinyrpc/comm/log.h"
 #include "tinyrpc/comm/config.h"
 
+
+// 指定RTLD_NEXT参数，意为寻找接下来的动态库中出先的第一个名为read的符号
 #define HOOK_SYS_FUNC(name) name##_fun_ptr_t g_sys_##name##_fun = (name##_fun_ptr_t)dlsym(RTLD_NEXT, #name);
 
 
@@ -36,7 +38,6 @@ void SetHook(bool value) {
 }
 
 void toEpoll(tinyrpc::FdEvent::ptr fd_event, int events) {
-	
 	tinyrpc::Coroutine* cur_cor = tinyrpc::Coroutine::GetCurrentCoroutine() ;
 	if (events & tinyrpc::IOEvent::READ) {
 		DebugLog << "fd:[" << fd_event->getFd() << "], register read event to epoll";
@@ -81,21 +82,23 @@ ssize_t read_hook(int fd, void *buf, size_t count) {
 		// return g_sys_read_fun(fd, buf, count);
 	// }
 
+	// append to the epoll later on
+	// 阻塞IO可能直接阻塞在read上，而不是epoll_wait上。
 	fd_event->setNonBlock();
 
 	// must fitst register read event on epoll
 	// because reactor should always care read event when a connection sockfd was created
 	// so if first call sys read, and read return success, this fucntion will not register read event and return
 	// for this connection sockfd, reactor will never care read event
-  ssize_t n = g_sys_read_fun(fd, buf, count);
-  if (n > 0) {
-    return n;
-  } 
+	ssize_t n = g_sys_read_fun(fd, buf, count);
+	if (n > 0) {
+		return n;
+	}
 
-	toEpoll(fd_event, tinyrpc::IOEvent::READ);
+	toEpoll(fd_event, tinyrpc::IOEvent::READ);  // 注册到epoll
 
 	DebugLog << "read func to yield";
-	tinyrpc::Coroutine::Yield();
+	tinyrpc::Coroutine::Yield(); // 切换到主协程
 
 	fd_event->delListenEvents(tinyrpc::IOEvent::READ);
 	fd_event->clearCoroutine();

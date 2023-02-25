@@ -398,6 +398,7 @@ void Reactor::addTask(std::vector<std::function<void()>> task, bool is_wakeup /*
   }
 }
 
+// add cor to the Reactor's task queue()
 void Reactor::addCoroutine(tinyrpc::Coroutine::ptr cor, bool is_wakeup /*=true*/) {
 
   auto func = [cor](){

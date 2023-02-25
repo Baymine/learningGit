@@ -1,11 +1,14 @@
+// test_tinypb_server.proto
 syntax = "proto3";
+
+// enables the use of the "generic service" interface, which allows you to invoke RPC methods on a 
+// protobuf::Service object using dynamic dispatch instead of relying on a generated, static C++ class for each service.
 option cc_generic_services = true;
 
 message queryAgeReq {
   int32 req_no = 1;
   int32 id = 2;
 }
-
 message queryAgeRes {
   int32 ret_code = 1;
   string res_info = 2;
@@ -13,13 +16,11 @@ message queryAgeRes {
   int32 id = 4;
   int32 age = 5;
 }
-
 message queryNameReq {
   int32 req_no = 1;
   int32 id = 2;
   int32 type = 3;
 }
-
 message queryNameRes {
   int32 ret_code = 1;
   string res_info = 2;
@@ -27,8 +28,6 @@ message queryNameRes {
   int32 id = 4;
   string name = 5;
 }
-
-
 service QueryService {
   // rpc method name
   rpc query_name(queryNameReq) returns (queryNameRes);

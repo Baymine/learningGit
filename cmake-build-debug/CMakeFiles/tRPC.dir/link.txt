@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/tRPC.dir/main.cpp.o -o tRPC 

@@ -93,9 +93,9 @@ class TcpServer {
 
  private:
   
-  NetAddress::ptr m_addr;
+  NetAddress::ptr m_addr;  // listen address
 
-  TcpAcceptor::ptr m_acceptor;
+  TcpAcceptor::ptr m_acceptor;  
 
   int m_tcp_counts {0};
 
@@ -103,13 +103,13 @@ class TcpServer {
 
   bool m_is_stop_accept {false};
 
-  Coroutine::ptr m_accept_cor;
+  Coroutine::ptr m_accept_cor;  // coroutine of m_acceptor
   
-  AbstractDispatcher::ptr m_dispatcher;
+  AbstractDispatcher::ptr m_dispatcher; 
 
-  AbstractCodeC::ptr m_codec;
+  AbstractCodeC::ptr m_codec; 
 
-  IOThreadPool::ptr m_io_pool;
+  IOThreadPool::ptr m_io_pool; // IO thread pool
 
   ProtocalType m_protocal_type {TinyPb_Protocal};
 

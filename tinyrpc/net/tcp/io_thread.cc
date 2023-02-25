@@ -29,6 +29,7 @@ IOThread::IOThread() {
   rt = sem_init(&m_start_semaphore, 0, 0);
   assert(rt==0);
 
+  // main: 线程创建之后执行的操作，this：传入main的参数
   pthread_create(&m_thread, nullptr, &IOThread::main, this);
 
   DebugLog << "semaphore begin to wait until new thread frinish IOThread::main() to init";
@@ -90,7 +91,8 @@ void* IOThread::main(void* arg) {
   Coroutine::GetCurrentCoroutine();
 
   DebugLog << "finish iothread init, now post semaphore";
-  sem_post(&thread->m_init_semaphore);
+  // release the token
+  sem_post(&thread->m_init_semaphore);  // it increments the value of the semaphore
 
   // wait for main thread post m_start_semaphore to start iothread loop
   sem_wait(&thread->m_start_semaphore);

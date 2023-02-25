@@ -7,112 +7,105 @@
 #include "tinyrpc/comm/run_time.h"
 
 namespace tinyrpc {
+    int getCoroutineIndex();
+    RunTime *getCurrentRunTime();
+    void setCurrentRunTime(RunTime *v);
 
-int getCoroutineIndex();
+    class Coroutine {
+    public:
+        typedef std::shared_ptr<Coroutine> ptr;
 
-RunTime* getCurrentRunTime();
+    private:
 
-void setCurrentRunTime(RunTime* v);
+        Coroutine();
 
-class Coroutine {
+    public:
 
- public:
-  typedef std::shared_ptr<Coroutine> ptr;
+        Coroutine(int size, char *stack_ptr);
 
- private:
+        Coroutine(int size, char *stack_ptr, std::function<void()> cb);
 
-  Coroutine();
+        ~Coroutine();
 
- public:
+        bool setCallBack(std::function<void()> cb);
 
-  Coroutine(int size, char* stack_ptr);
+        int getCorId() const {
+            return m_cor_id;
+        }
 
-  Coroutine(int size, char* stack_ptr, std::function<void()> cb);
+        void setIsInCoFunc(const bool v) {
+            m_is_in_cofunc = v;
+        }
 
-  ~Coroutine();
+        bool getIsInCoFunc() const {
+            return m_is_in_cofunc;
+        }
 
-  bool setCallBack(std::function<void()> cb); 
+        std::string getMsgNo() {
+            return m_msg_no;
+        }
 
-  int getCorId() const {
-    return m_cor_id;
-  }
+        RunTime *getRunTime() {
+            return &m_run_time;
+        }
 
-  void setIsInCoFunc(const bool v) {
-    m_is_in_cofunc = v;
-  }
+        void setMsgNo(const std::string &msg_no) {
+            m_msg_no = msg_no;
+        }
 
-  bool getIsInCoFunc() const {
-    return m_is_in_cofunc;
-  }
+        void setIndex(int index) {
+            m_index = index;
+        }
 
-  std::string getMsgNo() {
-    return m_msg_no;
-  }
+        int getIndex() {
+            return m_index;
+        }
 
-  RunTime* getRunTime() {
-    return &m_run_time; 
-  }
+        char *getStackPtr() {
+            return m_stack_sp;
+        }
 
-  void setMsgNo(const std::string& msg_no) {
-    m_msg_no = msg_no;
-  }
+        int getStackSize() {
+            return m_stack_size;
+        }
 
-  void setIndex(int index) {
-    m_index = index;
-  }
+        void setCanResume(bool v) {
+            m_can_resume = v;
+        }
 
-  int getIndex() {
-    return m_index;
-  }
+    public:
+        static void Yield();
 
-  char* getStackPtr() {
-    return m_stack_sp;
-  }
+        static void Resume(Coroutine *cor);
 
-  int getStackSize() {
-    return m_stack_size;
-  }
+        static Coroutine *GetCurrentCoroutine();
 
-  void setCanResume(bool v) {
-    m_can_resume = v;
-  }
+        static Coroutine *GetMainCoroutine();
 
- public:
-  static void Yield();
+        static bool IsMainCoroutine();
 
-  static void Resume(Coroutine* cor);
+        // static void SetCoroutineSwapFlag(bool value);
 
-  static Coroutine* GetCurrentCoroutine();
+        // static bool GetCoroutineSwapFlag();
 
-  static Coroutine* GetMainCoroutine();
+    private:
+        int m_cor_id{0};        // coroutine id
+        coctx m_coctx;           // coroutine regs
+        int m_stack_size{0};         // size of stack memory space
+        char *m_stack_sp{
+                NULL};      // coroutine's stack memory space, you can malloc or mmap get some memory to init this value
+        bool m_is_in_cofunc{false};  // true when call CoFunction, false when CoFunction finished，即该协程是否需要执行的的目标回调函数。
+        std::string m_msg_no;
+        RunTime m_run_time;
 
-  static bool IsMainCoroutine();
+        bool m_can_resume{true};
 
-  // static void SetCoroutineSwapFlag(bool value);
+        int m_index{-1};             // index in coroutine pool
 
-  // static bool GetCoroutineSwapFlag();
+    public:
+        std::function<void()> m_call_back;
 
- private:
-  int m_cor_id {0};        // coroutine' id
-  coctx m_coctx;           // coroutine regs
-  int m_stack_size {0};         // size of stack memory space
-  char* m_stack_sp {NULL};      // coroutine's stack memory space, you can malloc or mmap get some mermory to init this value
-  bool m_is_in_cofunc {false};  // true when call CoFunction, false when CoFunction finished
-  std::string m_msg_no;
-  RunTime m_run_time;
-
-  bool m_can_resume {true};
-
-  int m_index {-1};             // index in coroutine pool
-
-
- public:
-
-  std::function<void()> m_call_back;
-
-};
+    };
 
 }
-
-
 #endif

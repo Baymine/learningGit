@@ -46,6 +46,7 @@ TcpConnection::TcpConnection(tinyrpc::TcpClient* tcp_cli, tinyrpc::Reactor* reac
 
 }
 
+
 void TcpConnection::initServer() {
   m_loop_cor->setCallBack(std::bind(&TcpConnection::MainServerLoopCorFunc, this));
 }
@@ -53,7 +54,7 @@ void TcpConnection::setUpServer() {
   m_reactor->addCoroutine(m_loop_cor);
 }
 
-
+// 将连接注册到时间轮
 void TcpConnection::registerToTimeWheel() {
   auto cb = [] (TcpConnection::ptr conn) {
     conn->shutdownConnection();
@@ -96,6 +97,7 @@ void TcpConnection::MainServerLoopCorFunc() {
   InfoLog << "this connection has already end loop";
 }
 
+// 当 Tcp 连接收到新数据时，刷新一下
 void TcpConnection::input() {
   if (m_is_over_time) {
     InfoLog << "over timer, skip input progress";
@@ -186,8 +188,17 @@ void TcpConnection::execute() {
       data = std::make_shared<HttpRequest>();
     }
 
-    m_codec->decode(m_read_buffer.get(), data.get());
+    DebugLog << "=====================================";
     // DebugLog << "parse service_name=" << pb_struct.service_full_name;
+    DebugLog << "buffer size=" << m_read_buffer.get()->getSize();
+    std::stringstream ss;
+    for(auto c : m_read_buffer.get()->m_buffer){
+      std::string s = std::string(1, c);
+      ss << s;
+    }
+    DebugLog << ss.str();
+    DebugLog << "=====================================";
+    m_codec->decode(m_read_buffer.get(), data.get());
     if (!data->decode_succ) {
       ErrorLog << "it parse request error of fd " << m_fd;
       break;
@@ -269,6 +280,7 @@ void TcpConnection::clearClient() {
 
 }
 
+// 当时间轮中最后一个 slot 对象的 shared_ptr 被删除时，slot 对象析构，此时会发生调用到 shutdownConnection 函数
 void TcpConnection::shutdownConnection() {
   TcpConnectionState state = getState();
   if (state == Closed || state == NotConnected) {
@@ -341,6 +353,5 @@ Coroutine::ptr TcpConnection::getCoroutine() {
 
 
 
-
-
 }
+

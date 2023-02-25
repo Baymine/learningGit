@@ -41,9 +41,12 @@ class BlockCallHttpServlet : public tinyrpc::HttpServlet {
     rpc_controller.SetTimeout(5000);
 
     AppDebugLog << "BlockCallHttpServlet end to call RPC";
+    // 进行 RRC 调用， 这一步会阻塞当前协程，直到调用完成返回
+    // 当然阻塞的只是当前协程，对线程来说完全可以去执行其他的协程，因此不会影响性能
     stub.query_age(&rpc_controller, &rpc_req, &rpc_res, NULL);
     AppDebugLog << "BlockCallHttpServlet end to call RPC";
 
+    // 判断是否有框架级错误
     if (rpc_controller.ErrorCode() != 0) {
       AppDebugLog << "failed to call QueryServer rpc server";
       char buf[512];
@@ -176,6 +179,7 @@ class QPSHttpServlet : public tinyrpc::HttpServlet {
 
 
 int main(int argc, char* argv[]) {
+  printf("-------------------------------------");
   if (argc != 2) {
     printf("Start TinyRPC server error, input argc is not 2!");
     printf("Start TinyRPC server like this: \n");
