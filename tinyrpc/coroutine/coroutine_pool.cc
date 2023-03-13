@@ -70,9 +70,6 @@ Coroutine::ptr CoroutinePool::getCoroutineInstanse() {
   return std::make_shared<Coroutine>(m_stack_size, m_memory_pool[m_memory_pool.size() - 1]->getBlock());
 }
 
-void test(){
-  int i = cor->getIndex();
-}
 
 
 void CoroutinePool::returnCoroutine(Coroutine::ptr cor) {
@@ -88,7 +85,7 @@ void CoroutinePool::returnCoroutine(Coroutine::ptr cor) {
   }
 }
 
-// test   
+
 
 
 
