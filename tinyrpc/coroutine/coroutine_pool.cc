@@ -84,7 +84,18 @@ void CoroutinePool::returnCoroutine(Coroutine::ptr cor) {
     }
   }
 }
-void test(){}
+void CoroutinePool::returnCoroutine(Coroutine::ptr cor) {
+  int i = cor->getIndex();
+  if (i >= 0 && i < m_pool_size) {
+    m_free_cors[i].second = false;
+  } else {
+    for (size_t i = 1; i < m_memory_pool.size(); ++i) {
+      if (m_memory_pool[i]->hasBlock(cor->getStackPtr())) {
+        m_memory_pool[i]->backBlock(cor->getStackPtr());
+      }
+    }
+  }
+}
 
 
 
