@@ -80,8 +80,8 @@ class BlockCallHttpServlet : public tinyrpc::HttpServlet {
 
 };
 
-class NonBlockCallHttpServlet: public tinyrpc::HttpServlet {
- public:
+class NonBlockCallHttpServlet: public tinyrpc::HttpServlet { 
+public:
   NonBlockCallHttpServlet() = default;
   ~NonBlockCallHttpServlet() = default;
 
@@ -194,6 +194,7 @@ int main(int argc, char* argv[]) {
   REGISTER_HTTP_SERVLET("/block", BlockCallHttpServlet);
   REGISTER_HTTP_SERVLET("/nonblock", NonBlockCallHttpServlet);
 
+  // 开启日志和服务器
   tinyrpc::StartRpcServer();
   return 0;
 }

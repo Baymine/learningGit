@@ -38,6 +38,8 @@ void SetHook(bool value) {
 }
 
 void toEpoll(tinyrpc::FdEvent::ptr fd_event, int events) {
+
+	
 	tinyrpc::Coroutine* cur_cor = tinyrpc::Coroutine::GetCurrentCoroutine() ;
 	if (events & tinyrpc::IOEvent::READ) {
 		DebugLog << "fd:[" << fd_event->getFd() << "], register read event to epoll";

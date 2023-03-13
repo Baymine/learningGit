@@ -1,8 +1,0 @@
-digraph "类继承关系图"
-{
- // LATEX_PDF_SIZE
-  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
-  node [fontname="Helvetica",fontsize="10",shape=record];
-  rankdir="LR";
-  Node0 [label="google::protobuf::util\l::converter::testing::\lTypeInfoTestHelper",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classgoogle_1_1protobuf_1_1util_1_1converter_1_1testing_1_1TypeInfoTestHelper.html",tooltip=" "];
-}

@@ -1,8 +1,0 @@
-digraph "类继承关系图"
-{
- // LATEX_PDF_SIZE
-  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
-  node [fontname="Helvetica",fontsize="10",shape=record];
-  rankdir="LR";
-  Node0 [label="google::protobuf::internal\l::MapEntryToMapField\< MapEntryLite\l\< T, Key, Value, kKeyFieldType,\l kValueFieldType \> \>",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structgoogle_1_1protobuf_1_1internal_1_1MapEntryToMapField_3_01MapEntryLite_3_01T_00_01Key_00_01272fa18036f505cc0dec0a8df8e7f22c.html",tooltip=" "];
-}

@@ -178,9 +178,38 @@ TinyPB 协议是基于 protobuf 的一种自定义协议，主要是加了一些
 >   - it will listen for incoming HTTP requests and route them to the appropriate serverlet based on the requested URL.
 >   - 它接收 HTTP 请求，返回 HTTP 响应。Servlet 需要被注册到一个路径下，如 /user，当浏览器访问这个路径时，就会找到对应的 Servlet 程序。
 
+> the framework will listen for incoming HTTP requests and dispatch those requests to an appropriate handler based on the URL requested and the HTTP method used. The handler will then generate an appropriate HTTP response and send it back to the client.
+
+- serverlet--自定义链接地址对应一些响应(callback function)  -- 抽象服务端
+  - 虚拟接口
+  - serverletDispatch
+    - 管理和维护所有serverlet之间的关系(用URI区匹配对应的serverlet)
+    - 成员
+      - unordered_map（精准匹配） --- string ： serverlet::ptr
+      - vector(模糊匹配) -- 所有相似的路径
+        - "/sylar/*"
+        - 使用的是fnmatch -- 检查模式参数是否匹配
+      - default severlet: no match URL
+    - 一种特殊的serverlet，重载的handler是为了确定使用哪一个serverlet
+    - 添加serverlet（写入vector或者map ）
+      - 存在线程安全的问题
+        - 加上写锁
+    - 删除serverlet
+    - get serverlet
+    - 404 NotfoundServerlet
+
+- 项目中定义的Servlet
+  - BlockCallTttpServlet
+    - 直接`stub.query_age(&rpc_controller, &rpc_req, &rpc_res, NULL);`然后等待相应返回
+  - NonBlockCallTttpServlet
+  - BlockCallTttpServlet
+
+
 
 # RPC模块：基于Tcp的进一步封装，预计使用Protobuf进行序列化实现RPC。
 
+## 流程
+### 定义TinyPB
 > TinyPB 是 TinyRPC 框架自定义的一种轻量化协议类型，它是基于 google 的 protobuf 而定制的，读者可以按需自行对协议格式进行扩充。
 ```cpp
 /*
@@ -201,6 +230,27 @@ char end;                           // 代表报文结束，一般是 0x03
 ```
 - 为什么需要这样一个协议
   - 防止粘包，当多个报文以数据流的形式发送的时候，可以通过这样的报头中的信息获取各个报文的边界
+
+### 定义protobuf文件
+### 生成pb桩文件
+这两个文件包含了一些 RPC 主要类，如: queryAgeReq、QueryService、QueryService_Stub。
+### 实现RPC方法
+生成的QueryService是一个抽象类，需要重写业务函数（query_name...），实际上就是设置相关业务逻辑，然后设置返回状态和一些返回信息，然后调用其中的回调函数（原先的代码中需要利用request中的id到MySQL中查询用户信息，然后返回response对象）
+### 配置文件
+coroutine_stack_size = 256, coroutine_pool_size=1000
+time_wheel, bucket_num=3
+
+### 实现RPC服务
+```cpp
+tinyrpc::InitConfig(argv[1]);
+
+tinyrpc::GetServer()->registerService(std::make_shared<QueryServiceImpl>());
+
+tinyrpc::StartRpcServer();
+
+```
+### 修改 HTTP 服务实现异步 RPC 调用
+调用的方式是阻塞的，但是在调用中，协程会进行切换，当调用完成之后，会resume当前协程然后继续运行，所以是以同步的写法实现了异步的性能
 
 # 其他模块：如日志、线程池、互斥锁等模块。
 
